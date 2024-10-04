@@ -115,16 +115,5 @@ if __name__ == '__main__':
     scheduler.add_job(func=check_alerts, trigger="interval", minutes=5)
     scheduler.start()
 
-#port = int(os.environ.get('PORT', 5000))
-#app.run(host='0.0.0.0', port=port)
-
-import os
-from flask import Flask
-
-app = Flask(__name__)
-
-# Your existing routes here
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use PORT from environment or default to 5000
-    app.run(host="0.0.0.0", port=port)
+port = int(os.environ.get('PORT', 5000))
+app.run(host='0.0.0.0', port=port)
