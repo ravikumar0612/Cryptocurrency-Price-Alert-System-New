@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Price Alert System</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Crypto Price Alert System</h1>
+    <form id="alertForm">
+        <label for="crypto_symbol">Cryptocurrency Symbol (e.g., bitcoin, ethereum):</label>
+        <input type="text" id="crypto_symbol" required><br><br>
+        
+        <label for="upper_bound">Upper Bound ($):</label>
+        <input type="number" id="upper_bound" step="0.01" required><br><br>
+        
+        <label for="lower_bound">Lower Bound ($):</label>
+        <input type="number" id="lower_bound" step="0.01" required><br><br>
+        
+        <label for="email">Email for alerts:</label>
+        <input type="email" id="email" required><br><br>
+        
+        <button type="submit">Set Alert</button>
+    </form>
+
+    <div id="message"></div>
+
+    <script>
+        document.getElementById('alertForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const crypto_symbol = document.getElementById('crypto_symbol').value;
+            const upper_bound = document.getElementById('upper_bound').value;
+            const lower_bound = document.getElementById('lower_bound').value;
+            const email = document.getElementById('email').value;
+
+            axios.post('/set_alert', {
+                crypto_symbol: crypto_symbol,
+                upper_bound: upper_bound,
+                lower_bound: lower_bound,
+                email: email
+            })
+            .then(function (response) {
+                document.getElementById('message').innerHTML = 'Alert set successfully!';
+                document.getElementById('alertForm').reset();
+            })
+            .catch(function (error) {
+                document.getElementById('message').innerHTML = 'Error setting alert.';
+            });
+        });
+    </script>
+</body>
+</html>
