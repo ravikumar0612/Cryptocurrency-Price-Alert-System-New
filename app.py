@@ -8,6 +8,7 @@ import logging
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
+from urllib.parse import quote as url_quote
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,6 +18,11 @@ app = Flask(__name__)
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+#change code ravi
+app.logger.setLevel(logging.DEBUG)
+
+# In your code, use app.logger to log important events
+app.logger.info("Starting the Flask app on Render...")
 
 # Email configuration
 SMTP_SERVER = "smtp.gmail.com"

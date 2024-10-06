@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\ravis\OneDrive\Desktop\Test\Cryptocurrency-Price-Alert-System\venv
+set VIRTUAL_ENV=C:\Other Disk ( My Data)\Project\Render\Cryptocurrency-Price-Alert-System-New\venv
 
 if not defined PROMPT set PROMPT=$P$G
 
