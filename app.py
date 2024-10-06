@@ -1,5 +1,6 @@
 import requests
 from flask import Flask, render_template, request, jsonify
+from flask_mail import Mail, Message
 from apscheduler.schedulers.background import BackgroundScheduler
 import smtplib
 from email.mime.text import MIMEText
@@ -13,7 +14,23 @@ from urllib.parse import quote as url_quote
 # Load environment variables from .env file
 load_dotenv()
 
-app = Flask(__name__)
+import os
+   from flask_mail import Mail, Message
+
+   app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+   app.config['MAIL_PORT'] = 587
+   app.config['MAIL_USE_TLS'] = True
+   app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
+   app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
+
+   mail = Mail(app)
+
+   def send_email(subject, body, recipients):
+       msg = Message(subject, 
+                     sender=app.config['MAIL_USERNAME'],
+                     recipients=recipients)
+       msg.body = body
+       mail.send(msg)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -87,6 +104,14 @@ def check_alerts():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/test_email')
+def test_email():
+    try:
+        send_email('Test Email', 'This is a test email from your Render app', ['your-email@example.com'])
+        return 'Email sent successfully'
+    except Exception as e:
+        return f'Error sending email: {str(e)}'
 
 @app.route('/set_alert', methods=['POST'])
 def set_alert():
