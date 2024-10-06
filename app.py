@@ -1,45 +1,23 @@
+import os
+import logging
 import requests
 from flask import Flask, render_template, request, jsonify
-from flask_mail import Mail, Message
 from apscheduler.schedulers.background import BackgroundScheduler
 import smtplib
 from email.mime.text import MIMEText
-import os
-import logging
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
-from urllib.parse import quote as url_quote
 
 # Load environment variables from .env file
 load_dotenv()
 
-import os
-   from flask_mail import Mail, Message
-
-   app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-   app.config['MAIL_PORT'] = 587
-   app.config['MAIL_USE_TLS'] = True
-   app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
-   app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
-
-   mail = Mail(app)
-
-   def send_email(subject, body, recipients):
-       msg = Message(subject, 
-                     sender=app.config['MAIL_USERNAME'],
-                     recipients=recipients)
-       msg.body = body
-       mail.send(msg)
+app = Flask(__name__)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-#change code ravi
 app.logger.setLevel(logging.DEBUG)
-
-# In your code, use app.logger to log important events
-app.logger.info("Starting the Flask app on Render...")
 
 # Email configuration
 SMTP_SERVER = "smtp.gmail.com"
@@ -105,14 +83,6 @@ def check_alerts():
 def index():
     return render_template('index.html')
 
-@app.route('/test_email')
-def test_email():
-    try:
-        send_email('Test Email', 'This is a test email from your Render app', ['your-email@example.com'])
-        return 'Email sent successfully'
-    except Exception as e:
-        return f'Error sending email: {str(e)}'
-
 @app.route('/set_alert', methods=['POST'])
 def set_alert():
     data = request.json
@@ -133,6 +103,14 @@ def set_alert():
     logger.info(f"New alert set for {crypto_symbol}: Upper bound ${upper_bound}, Lower bound ${lower_bound}")
     return jsonify({"status": "success"})
 
+@app.route('/test_email')
+def test_email():
+    try:
+        send_email_alert(SMTP_USERNAME, "Test Email", "This is a test email from your Render app")
+        return 'Email sent successfully'
+    except Exception as e:
+        return f'Error sending email: {str(e)}'
+
 if __name__ == '__main__':
     # Check if environment variables are set
     if not all([SMTP_USERNAME, SMTP_PASSWORD]):
@@ -146,5 +124,6 @@ if __name__ == '__main__':
     scheduler.add_job(func=check_alerts, trigger="interval", minutes=5)
     scheduler.start()
 
-port = int(os.environ.get('PORT', 5000))
-app.run(host='0.0.0.0', port=port)
+    app.logger.info("Starting the Flask app on Render...")
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
