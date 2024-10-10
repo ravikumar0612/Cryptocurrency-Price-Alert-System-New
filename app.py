@@ -15,7 +15,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 app.logger.setLevel(logging.DEBUG)
 
@@ -40,7 +40,9 @@ def get_crypto_price(crypto_symbol):
         response = session.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
-        return data[crypto_symbol]['usd']
+        price = data[crypto_symbol]['usd']
+        logger.debug(f"Fetched price for {crypto_symbol}: ${price}")
+        return price
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching price for {crypto_symbol}: {str(e)}")
         return None
@@ -66,10 +68,13 @@ def send_email_alert(recipient, subject, body):
         logger.error(f"Failed to send email: {str(e)}")
 
 def check_alerts():
+    logger.info("Starting to check alerts")
+    logger.debug(f"Current alerts: {alerts}")
     for crypto_symbol, alert_data in alerts.items():
         current_price = get_crypto_price(crypto_symbol)
         if current_price is not None:
             for alert in alert_data:
+                logger.debug(f"Checking alert for {crypto_symbol}: current price ${current_price}, upper bound ${alert['upper_bound']}, lower bound ${alert['lower_bound']}")
                 if current_price > alert['upper_bound']:
                     alert_message = f"Alert: {crypto_symbol} price (${current_price}) is above ${alert['upper_bound']}"
                     logger.info(alert_message)
@@ -78,6 +83,7 @@ def check_alerts():
                     alert_message = f"Alert: {crypto_symbol} price (${current_price}) is below ${alert['lower_bound']}"
                     logger.info(alert_message)
                     send_email_alert(alert['email'], "Crypto Price Alert", alert_message)
+    logger.info("Finished checking alerts")
 
 @app.route('/')
 def index():
@@ -86,11 +92,13 @@ def index():
 @app.route('/set_alert', methods=['POST'])
 def set_alert():
     data = request.json
+    logger.info(f"Received alert request: {data}")
     crypto_symbol = data['crypto_symbol'].lower()
     upper_bound = float(data['upper_bound'])
     lower_bound = float(data['lower_bound'])
     
     if upper_bound <= lower_bound:
+        logger.warning(f"Invalid alert bounds: upper {upper_bound}, lower {lower_bound}")
         return jsonify({"status": "error", "message": "Upper bound must be greater than lower bound"}), 400
     
     if crypto_symbol not in alerts:
@@ -101,6 +109,7 @@ def set_alert():
         'email': data['email']
     })
     logger.info(f"New alert set for {crypto_symbol}: Upper bound ${upper_bound}, Lower bound ${lower_bound}")
+    logger.debug(f"Current alerts: {alerts}")
     return jsonify({"status": "success"})
 
 @app.route('/test_email')
@@ -109,6 +118,7 @@ def test_email():
         send_email_alert(SMTP_USERNAME, "Test Email", "This is a test email from your Render app")
         return 'Email sent successfully'
     except Exception as e:
+        logger.error(f"Error in test_email: {str(e)}")
         return f'Error sending email: {str(e)}'
 
 if __name__ == '__main__':
@@ -121,7 +131,7 @@ if __name__ == '__main__':
     logger.info(f"Email password is set: {'Yes' if SMTP_PASSWORD else 'No'}")
 
     scheduler = BackgroundScheduler()
-    scheduler.add_job(func=check_alerts, trigger="interval", minutes=5)
+    scheduler.add_job(func=check_alerts, trigger="interval", seconds=30)
     scheduler.start()
 
     app.logger.info("Starting the Flask app on Render...")
