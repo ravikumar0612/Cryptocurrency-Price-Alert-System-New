@@ -35,7 +35,7 @@ retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 50
 session.mount('https://', HTTPAdapter(max_retries=retries))
 
 def get_crypto_price(crypto_symbol):
-    url = f"https://api.coingecko.com/api/v3/simple/price?ids={crypto_symbol}&vs_currencies=usd"
+    url = f"https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
     try:
         response = session.get(url, timeout=10)
         response.raise_for_status()
