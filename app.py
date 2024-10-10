@@ -53,17 +53,17 @@ def send_email_alert(recipient, subject, body):
     msg['From'] = SENDER_EMAIL
     msg['To'] = recipient
     try:
+        logger.info(f"Attempting to send email to {recipient}")
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            logger.info(f"Connecting to SMTP server: {SMTP_SERVER}:{SMTP_PORT}")
             server.starttls()
             logger.info(f"Attempting to login with username: {SMTP_USERNAME}")
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             logger.info("Login successful")
             server.send_message(msg)
-        logger.info(f"Email alert sent to {recipient}")
+            logger.info(f"Email alert sent to {recipient}")
     except smtplib.SMTPAuthenticationError as e:
         logger.error(f"SMTP Authentication failed: {str(e)}")
-        logger.info("Please check your EMAIL_USERNAME and EMAIL_PASSWORD in the .env file")
-        logger.info("Make sure you're using an App Password if you're using Gmail")
     except Exception as e:
         logger.error(f"Failed to send email: {str(e)}")
 
